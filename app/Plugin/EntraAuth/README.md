@@ -19,7 +19,7 @@ This plugin enables seamless Single Sign-On (SSO) and automatic user provisionin
    [https://misp.yourdomain.com/users/login](https://misp.yourdomain.com/users/login)
    ```
 
-*Note: The Redirect URI specified here must match your configuration array entry exactly.*
+   *Note: The Redirect URI specified here must match your configuration array entry exactly.*
 
 3. From the application **Overview** page, record the following values:
 
@@ -28,7 +28,9 @@ This plugin enables seamless Single Sign-On (SSO) and automatic user provisionin
 
 
 4. Navigate to **Certificates & secrets** > **Client secrets** > **New client secret**. Select an expiration policy matching your internal compliance criteria.
-5. **Immediately copy the Value** from the client secret row. *(This value becomes hidden after leaving the page)*.
+5. **Immediately copy the Value** from the client secret row. 
+
+   *Note: This value becomes hidden after leaving the page.*
 
 ### API Permissions (Conditional)
 
@@ -39,33 +41,89 @@ If you plan to map internal MISP roles based on Entra security group memberships
 3. Once added, click **Grant admin consent for [Your Tenant]** to authorize the permission across your organization.
 4. Ensure your designated enterprise directories or security groups have been created inside Entra ID and capture their exact names:
 
+### Mapping to `claims`
+By default, standard attributes like `userPrincipalName` or `mail` are included in the baseline identity token. However, mapping custom organization details or metadata-such as your `organisation_property` (e.g., `organization`) and `organisation_uuid_property` (e.g., `organization_uuid`)-requires exposing these claims via the App Registration's **Token Configuration** or **Enterprise Application Attributes & Claims** engine.
+
+Depending on how your enterprise tracks organization metadata in Entra ID, choose one of the two methods below to expose these claims to the plugin.
+
+#### Method A: Using Standard Directory Attributes (Most Common)
+
+If you store the organization name in a default Microsoft Entra ID profile field (such as the native `Company name` or `Department` attribute), you can map it directly into the token.
+
+1. Sign in to the **Microsoft Entra Admin Center**.
+2. Navigate to **Identity** > **Applications** > **App registrations**, and select your MISP application.
+3. On the left sidebar under *Manage*, click on **Token configuration**.
+4. Click **Add optional claim**.
+5. In the drawer that appears on the right:
+   * Select **ID** as the token type.
+   * Look through the list of standard claims. If you are using the native directory fields, check **`companyname`** (maps to `organization` name) or **`tenantid`** (if your MISP organization maps exactly to your Microsoft Directory Tenant UUID).
+6. Click **Add**.
+7. If prompted, check the box to **Turn on the Microsoft Graph profile permission** (this ensures the scope matches what the application requires to parse it) and click **Save**.
+
+   *Note: If you use `companyname`, update your MISP `config.php` to target it:*
+
+   ```php
+   'organisation_property' => 'companyname',
+   ```
+
+#### Method B: Using Custom Claims via Enterprise Applications (For UUIDs & Extension Attributes)
+
+If your organization requires mapping a specific custom schema attribute (like a dedicated corporate `organization_uuid` or an `extension_attribute` synced from on-premises Active Directory), you must define a custom claim transformation.
+
+1. In the **Microsoft Entra Admin Center**, navigate to **Identity** > **Applications** > **Enterprise applications** (instead of *App registrations*).
+2. Search for and select your MISP application service principal.
+3. Under *Manage* in the left sidebar, click **Single sign-on**.
+4. In the main pane, find the **Attributes & Claims** section box and click **Edit**.
+5. To expose a custom property, click **Add new claim**.
+6. Configure the claim details:
+   * **Name:** Enter the exact string key expected by your MISP plugin config (e.g., `organization` or `organization_uuid`).
+   * **Namespace:** Leave this blank to keep the claim short and clean (e.g., `organization` instead of `http://schemas.xmlsoap.org/.../organization`).
+   * **Source:** Select **Attribute**.
+   * **Source attribute:** Open the dropdown and search for the profile property holding your data.
+   * For names: Choose `user.companyname` or `user.department`.
+   * For synced on-premises custom attributes: Choose `user.onpremisesextensionattribute1` through `15`.
+7. Click **Save**.
+
+#### Method C: emulating claims via App Roles (Alternative for static environments)
+
+If your Entra tenant doesn't have custom extension schemas enabled but you still need to pass a static Organization identifier based on user groups, you can use **App Roles**.
+
+1. Go back to **App registrations** and choose your MISP app.
+2. Click **App roles** > **Create app role**.
+3. Define the role:
+   * **Display name:** e.g., `External Org - Cert Team`
+   * **Allowed member types:** Both (Users/Groups)
+   * **Value:** This must be the exact text name or UUID of the MISP organization you want to assign (e.g., `CERT-Team`).
+
+
+4. Once created, assign users or groups to this App Role under **Enterprise Applications**.
+5. In your Token Configuration, ensure the `roles` claim is added to your ID token. You can then map `roles` as your organizational property:
+   ```php
+   'organisation_property' => 'roles',
+   ```
 
 ## 2. Plugin Installation & Activation
 
 1. Access your MISP host over SSH and switch context to the `misp` system identity:
-```bash
-su - misp
-```
-
+   ```bash
+   su - misp
+   ```
 
 2. **Crucial:** Always back up your operational configurations prior to editing database arrays:
-```bash
-cp /var/www/MISP/app/Config/config.php /var/www/MISP/app/Config/config.orig.php
-```
-
+   ```bash
+   cp /var/www/MISP/app/Config/config.php /var/www/MISP/app/Config/config.orig.php
+   ```
 
 3. Open `/var/www/MISP/app/Config/config.php` inside a text editor:
-```bash
-nano /var/www/MISP/app/Config/config.php
-```
-
-
+   ```bash
+   nano /var/www/MISP/app/Config/config.php
+   ```
 4. Find the global `'Security'` context parameter block and register the Component class array mapping:
-```php
-'auth' => array(
-    0 => 'EntraAuth.EntraAuthenticate',
-),
-```
+   ```php
+   'auth' => array(
+       0 => 'EntraAuth.EntraAuthenticate',
+   ),
+   ```
 
 ## 3. Configuration Parameters
 
@@ -104,8 +162,8 @@ If your legacy structural configuration relies on the old hardcoded role propert
 * `misp_user`
 * `misp_orgadmin`
 * `misp_siteadmin`
-
-*Note: Transitioning explicit parameters over to the unified structured `role_mapper` array dictionary is highly encouraged.*
+   
+   *Note: Transitioning explicit parameters over to the unified structured `role_mapper` array dictionary is highly encouraged.*
 
 
 ## 4. Production Security Hardening
@@ -114,13 +172,13 @@ When offloading identity management workflows directly to Microsoft Entra ID, lo
 
 1. When adding or enrolling new accounts locally within the MISP administration pane, ensure the **"Send credentials automatically"** setting remains **unchecked**.
 2. Apply the following restrictive configurations to your global `config.php` structure to turn off local user self-management modifications:
-```php
-'MISP' => array(
-    'disableUserSelfManagement'     => true, // Removes profile modifications and token regeneration access
-    'disable_user_login_change'     => true, // Restricts user identity/email tracking adjustments to Site Admins
-    'disable_user_password_change'  => true, // Completely blocks local user password changes
-),
-```
+   ```php
+   'MISP' => array(
+       'disableUserSelfManagement'     => true, // Removes profile modifications and token regeneration access
+       'disable_user_login_change'     => true, // Restricts user identity/email tracking adjustments to Site Admins
+       'disable_user_password_change'  => true, // Completely blocks local user password changes
+   ),
+   ```
 
 ## Troubleshooting
 

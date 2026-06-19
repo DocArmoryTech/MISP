@@ -170,7 +170,7 @@
                 <?= $this->Form->end(); ?>
 
                 <!-- Auth alternatives -->
-                <?php if (Configure::read('ApacheShibbAuth') || Configure::read('AadAuth') || (Configure::read('OidcAuth') && Configure::read('OidcAuth.mixedAuth'))): ?>
+                <?php if (Configure::read('ApacheShibbAuth') || Configure::read('AadAuth') || Configure::read('EntraAuth') || (Configure::read('OidcAuth') && Configure::read('OidcAuth.mixedAuth'))): ?>
                     <div class="text-center text-muted mb-3 separator">
                         <?= __('Or login with') ?>
                     </div>
@@ -197,6 +197,23 @@
                                 'controller' => 'users',
                                 'action' => 'login',
                                 '?' => ['AzureAD' => 'enable']
+                            ],
+                            [
+                                'class' =>  'btn btn-outline-primary btn-login btn-lg',
+                                'escape' => false
+                            ]
+                        ) ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (Configure::read('EntraAuth')): ?>
+                    <div class="d-grid mb-3">
+                            <?= $this->Html->link(
+                            '<i class="fa-brands fa-microsoft text-info me-2"></i>' . __('Login with Entra ID'),
+                            [
+                                'controller' => 'users',
+                                'action' => 'login',
+                                '?' => ['EntraID' => 'enable']
                             ],
                             [
                                 'class' =>  'btn btn-outline-primary btn-login btn-lg',

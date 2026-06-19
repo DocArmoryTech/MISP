@@ -2626,7 +2626,7 @@ class Server extends AppModel
         $settingsToSave = array(
             'debug', 'MISP', 'GnuPG', 'SMIME', 'Proxy', 'SecureAuth',
             'Security', 'Session', 'site_admin_debug', 'Plugin', 'CertAuth',
-            'ApacheShibbAuth', 'ApacheSecureAuth', 'OidcAuth', 'AadAuth',
+            'ApacheShibbAuth', 'ApacheSecureAuth', 'OidcAuth', 'AadAuth', 'EntraAuth',
             'SimpleBackgroundJobs', 'LinOTPAuth', 'LdapAuth'
         );
         $settingsArray = array();

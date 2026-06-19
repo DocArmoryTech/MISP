@@ -81,6 +81,9 @@
             if (Configure::read('AadAuth') == true) {
                 echo '<div class="clear" style="margin-top: 5px;"></div><a class="btn btn-info" href="/users/login?AzureAD=enable">Login with AzureAD</a>';
             }
+            if (Configure::read('EntraAuth') == true) {
+                echo '<div class="clear" style="margin-top: 5px;"></div><a class="btn btn-info" href="/users/login?EntraID=enable">Login with Entra ID</a>';
+            }
             if (Configure::read('OidcAuth') == true && Configure::read('OidcAuth.mixedAuth') == true) {
                 $oidcLoginText = Configure::read('OidcAuth.login_button_text');
                 if (empty($oidcLoginText)) {

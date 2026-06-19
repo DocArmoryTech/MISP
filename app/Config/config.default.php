@@ -21,6 +21,7 @@ $config = array(
         //'auth'                            => array('CertAuth.Certificate'), // additional authentication methods
         //'auth'                            => array('ShibbAuth.ApacheShibb'),
         //'auth'                            => array('AadAuth.AadAuthenticate'),
+        //'auth'                            => array('EntraAuth.EntraAuthenticate'),
         //'auth'                            => array('LinOTPAuth.LinOTP'),
         //'auth'                            => array('LdapAuth.Ldap'),
     ),
@@ -268,6 +269,42 @@ $config = array(
         'misp_orgadmin' => 'MISP Administrators',	// The AD group for MISP administrators
         'misp_siteadmin' => 'MISP Site Administrators', 	// The AD group for MISP site administrators
         'check_ad_groups' => true	// Should we check if the user belongs to one of the above AD groups?
+    ),
+    */
+
+    // Warning: The following is a 3rd party contribution and still untested (including security) by the MISP-project team.
+    // Feel free to enable it and report back to us if you run into any issues.
+    //
+    // Uncomment the following to enable Entra ID authentication
+    /*
+    'EntraAuth' => array(
+        'client_id' => '', // Client ID (see Azure AD)
+        'entra_tenant' => '', // Directory (tenant) ID (see Microsoft Entra)
+        'client_secret' => '', // Client secret (see Azure AD)
+        'redirect_uri' => '', // Your MISP URI, must be the same as in Azure AD
+        'auth_provider' => 'https://login.microsoftonline.com/',
+        'auth_provider_user' => 'https://graph.microsoft.com/',
+        'auth_property_name' => 'userPrincipalName', // The property to use for authentication. Supported values are usually `mail` or `userPrincipalName`
+        
+        // Optional: Explicitly override OAuth scopes. 
+        // If left blank or omitted, it defaults to "User.Read" 
+        // (and automatically appends "GroupMember.Read.All" if group mapping is active).
+        // 'scope' => 'User.Read GroupMember.Read.All Custom.Scope',
+
+        'organisation_property' => 'organization', // Claim containing organisation name
+        'organisation_uuid_property' => 'organization_uuid', // Optional claim containing organisation UUID
+        'default_org' => '', // Optional fallback organisation (ID, UUID or name) when org claim cannot be resolved
+        'role_mapper' => array( // Entra AD group to MISP role mapping. First matching group wins. Value can be role ID or role name.
+            // 'MISP Site Administrators' => 1,
+            // 'MISP Administrators' => 2,
+            // 'MISP Users' => 3,
+        ),
+        'update_user_role' => true, // Should role be updated on each successful Entra login
+        'update_user_org' => true, // Should organisation be updated on each successful Entra login
+        'misp_user' => 'MISP Users',	// The Entra group for MISP users
+        'misp_orgadmin' => 'MISP Administrators',	// The Entra group for MISP administrators
+        'misp_siteadmin' => 'MISP Site Administrators', 	// The Entra group for MISP site administrators
+        'check_entra_groups' => true	// Check Entra groups for mapping.
     ),
     */
 );

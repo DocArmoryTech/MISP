@@ -141,6 +141,10 @@ if (Configure::read('AadAuth')) {
 	CakePlugin::load('AadAuth');
 }
 
+if (Configure::read('EntraAuth')) {
+	CakePlugin::load('EntraAuth');
+}
+
 if (Configure::read('CertAuth')) {
 	CakePlugin::load('CertAuth');
 }

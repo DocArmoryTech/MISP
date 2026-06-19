@@ -161,6 +161,15 @@ class EntraAuthenticateAuthenticate extends BaseAuthenticate
 		$this->redirect_uri =  Configure::read('EntraAuth.redirect_uri');
 		$this->auth_provider =  Configure::read('EntraAuth.auth_provider');
 		$this->auth_provider_user =  Configure::read('EntraAuth.auth_provider_user');
+		$this->misp_user =  Configure::read('EntraAuth.misp_user');
+		$this->misp_orgadmin =  Configure::read('EntraAuth.misp_orgadmin');
+		$this->misp_siteadmin =  Configure::read('EntraAuth.misp_siteadmin');
+		$this->check_entra_groups =  Configure::read('EntraAuth.check_entra_groups');
+		$this->auth_property_name =  Configure::read('EntraAuth.auth_property_name') ?? 'userPrincipalName';
+		$this->organisation_property = Configure::read('EntraAuth.organisation_property') ?? 'organization';
+		$this->organisation_uuid_property = Configure::read('EntraAuth.organisation_uuid_property') ?? 'organization_uuid';
+		$this->default_org = Configure::read('EntraAuth.default_org');
+		$this->role_mapper = Configure::read('EntraAuth.role_mapper') ?? [];
 		
 		// Resolve scopes dynamically, or fall back to an explicit config override
 		$configScope = Configure::read('EntraAuth.scope');
@@ -175,15 +184,6 @@ class EntraAuthenticateAuthenticate extends BaseAuthenticate
 			$this->scope = implode(' ', $scopes);
 		}
 		
-		$this->misp_user =  Configure::read('EntraAuth.misp_user');
-		$this->misp_orgadmin =  Configure::read('EntraAuth.misp_orgadmin');
-		$this->misp_siteadmin =  Configure::read('EntraAuth.misp_siteadmin');
-		$this->check_entra_groups =  Configure::read('EntraAuth.check_entra_groups');
-		$this->auth_property_name =  Configure::read('EntraAuth.auth_property_name') ?? 'userPrincipalName';
-		$this->organisation_property = Configure::read('EntraAuth.organisation_property') ?? 'organization';
-		$this->organisation_uuid_property = Configure::read('EntraAuth.organisation_uuid_property') ?? 'organization_uuid';
-		$this->default_org = Configure::read('EntraAuth.default_org');
-		$this->role_mapper = Configure::read('EntraAuth.role_mapper') ?? [];
 		$this->update_user_role = Configure::read('EntraAuth.update_user_role');
 		if ($this->update_user_role === null) {
 			$this->update_user_role = true;
